@@ -1,4 +1,3 @@
-# share-code
+# Caffe-KL Loss
 
-Caffe-KL Loss
-\latex
+
