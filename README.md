@@ -1,3 +1,3 @@
 # Caffe-KL Loss
 
-updatet on 29, June
+update on 29, June
