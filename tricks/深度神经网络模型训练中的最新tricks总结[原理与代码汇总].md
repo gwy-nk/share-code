@@ -367,16 +367,16 @@ AutoAugment在cifar10上的表现如下表，达到了98.52%的准确率。
 - Xavier init[12]
 - ...
 ## 参考
-[1] Deep Residual Learning for Image Recognition(https://arxiv.org/pdf/1512.03385.pdf)
-[2] http://cs231n.github.io/neural-networks-2/
-[3] Accurate, Large Minibatch SGD: Training ImageNet in 1 Hour(https://arxiv.org/pdf/1706.02677v2.pdf)
-[4] Rethinking the Inception Architecture for Computer Vision(https://arxiv.org/pdf/1512.00567v3.pdf)
-[4]Bag of Tricks for Image Classification with Convolutional Neural Networks(https://arxiv.org/pdf/1812.01187.pdf)
-[5] Adaptive Gradient Methods with Dynamic Bound of Learning Rate(https://www.luolc.com/publications/adabound/)
-[6] Random erasing(https://arxiv.org/pdf/1708.04896v2.pdf)
-[7] RICAP(https://arxiv.org/pdf/1811.09030.pdf)
-[8] Distilling the Knowledge in a Neural Network(https://arxiv.org/pdf/1503.02531.pdf)
-[9] Improved Regularization of Convolutional Neural Networks with Cutout(https://arxiv.org/pdf/1708.04552.pdf)
-[10] Mixup: BEYOND EMPIRICAL RISK MINIMIZATION(https://arxiv.org/pdf/1710.09412.pdf)
-[11] AutoAugment: Learning Augmentation Policies from Data(https://arxiv.org/pdf/1805.09501.pdf)
-[12] Understanding the difficulty of training deep feedforward neural networks(http://proceedings.mlr.press/v9/glorot10a/glorot10a.pdf)
+[1] Deep Residual Learning for Image Recognition(https://arxiv.org/pdf/1512.03385.pdf)</br>
+[2] http://cs231n.github.io/neural-networks-2/</br>
+[3] Accurate, Large Minibatch SGD: Training ImageNet in 1 Hour(https://arxiv.org/pdf/1706.02677v2.pdf)</br>
+[4] Rethinking the Inception Architecture for Computer Vision(https://arxiv.org/pdf/1512.00567v3.pdf)</br>
+[4]Bag of Tricks for Image Classification with Convolutional Neural Networks(https://arxiv.org/pdf/1812.01187.pdf)</br>
+[5] Adaptive Gradient Methods with Dynamic Bound of Learning Rate(https://www.luolc.com/publications/adabound/)</br>
+[6] Random erasing(https://arxiv.org/pdf/1708.04896v2.pdf)</br>
+[7] RICAP(https://arxiv.org/pdf/1811.09030.pdf)</br>
+[8] Distilling the Knowledge in a Neural Network(https://arxiv.org/pdf/1503.02531.pdf)</br>
+[9] Improved Regularization of Convolutional Neural Networks with Cutout(https://arxiv.org/pdf/1708.04552.pdf)</br>
+[10] Mixup: BEYOND EMPIRICAL RISK MINIMIZATION(https://arxiv.org/pdf/1710.09412.pdf)</br>
+[11] AutoAugment: Learning Augmentation Policies from Data(https://arxiv.org/pdf/1805.09501.pdf)</br>
+[12] Understanding the difficulty of training deep feedforward neural networks(http://proceedings.mlr.press/v9/glorot10a/glorot10a.pdf)</br>
