@@ -353,19 +353,19 @@ AutoAugment在cifar10上的表现如下表，达到了98.52%的准确率。
 </br>
 ## 其他经典的tricks
 ### 常用的正则化方法为:
--- Dropout
--- L1/L2正则
--- Batch Normalization
--- Early stopping
--- Random cropping
--- Mirroring
--- Rotation
--- Color shifting
--- PCA color augmentation
--- ...
+- Dropout
+- L1/L2正则
+- Batch Normalization
+- Early stopping
+- Random cropping
+- Mirroring
+- Rotation
+- Color shifting
+- PCA color augmentation
+- ...
 ### 其他
--- Xavier init[12]
--- ...
+- Xavier init[12]
+- ...
 ## 参考
 [1] Deep Residual Learning for Image Recognition(https://arxiv.org/pdf/1512.03385.pdf)
 [2] http://cs231n.github.io/neural-networks-2/
