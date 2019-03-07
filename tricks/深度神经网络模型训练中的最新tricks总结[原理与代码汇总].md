@@ -74,4 +74,68 @@ Linear scaling learning rate是在论文[3]中针对比较大的batch size而提
 标签平滑(Label-smoothing regularization,LSR)是应对该问题的有效方法之一，它的具体思想是降低我们对于标签的信任，例如我们可以将损失的目标值从1稍微降到0.9，或者将从0稍微升到0.1。标签平滑最早在inception-v2[4]中被提出，它将真实的概率改造为：
 </br>
  <img src="https://github.com/NKvision428/share-code/blob/master/tricks/imgs/1.webp"  div align=center />
+ 其中，ε是一个小的常数，K是类别的数目，y是图片的真正的标签，i代表第i个类别，q_i是图片为第i类的概率。
+
+总的来说，LSR是一种通过在标签y中加入噪声，实现对模型约束，降低模型过拟合程度的一种正则化方法。
+
+LSR代码如下：
+```
+import torch
+import torch.nn as nn
+class LSR(nn.Module):
+    def __init__(self, e=0.1, reduction='mean'):
+        super().__init__()
+        self.log_softmax = nn.
+        LogSoftmax(dim=1)
+        self.e = e
+        self.reduction = reduction
+    def _one_hot(self, labels, classes, value=1):
+        """
+            Convert labels to one hot vectors
+        Args:
+            labels: torch tensor in format [label1, label2, label3, ...]
+            classes: int, number of classes
+            value: label value in one hot vector, default to 1
+            Returns: 
+                return one hot format labels in shape [batchsize, classes]
+        """
+        one_hot = torch.zeros(labels.size(0), classes)
+        #labels and value_added  size must match
+        labels = labels.view(labels.size(0), -1)
+        value_added = torch.Tensor(labels.size(0), 1).fill_(value)
+        value_added = value_added.to(labels.device)
+        one_hot = one_hot.to(labels.device)
+        one_hot.scatter_add_(1, labels, value_added)
+        
+        return one_hot
+    
+def _smooth_label(self, target, length, smooth_factor):
+    """convert targets to one-hot format, and smooth them.
+    Args:
+        target: target in form with [label1, label2, label_batchsize]
+
+            length: length of one-hot format(number of classes)
+
+            smooth_factor: smooth factor for label smooth
+
+
+
+        Returns:
+
+            smoothed labels in one hot format
+
+        """
+
+        one_hot = self._one_hot(target, length, value=
+1
+ - smooth_factor)
+
+        one_hot += smooth_factor / length
+
+
+
+        
+return
+ one_hot.to(target.device)
+```
 
