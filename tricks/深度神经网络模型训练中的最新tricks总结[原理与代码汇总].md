@@ -129,3 +129,44 @@ RICAP在caifar10上达到了2.19%的错误率。
 </br>
 ![](https://github.com/NKvision428/share-code/blob/master/tricks/imgs/2.webp)
 </br>
+如下图所示，Ix, Iy是原始图片的宽和高。w和h称为boundary position，它决定了四个裁剪得到的小图片的尺寸。w和h从beta分布Beta(β, β)中随机生成，β也是RICAP的超参数。最终拼接的图片尺寸和原图片尺寸保持一致。
+</br>
+![](https://github.com/NKvision428/share-code/blob/master/tricks/imgs/3.webp)
+</br>
+</br>
+![](https://github.com/NKvision428/share-code/blob/master/tricks/imgs/4.webp)
+</br>
+RICAP的代码如下：
+```
+beta = 0.3
+# hyperparameter
+for (images, targets) in train_loader:
+    # get the image size
+    I_x, I_y = images.size()[2:]    
+    # draw a boundry position (w, h)
+    w = int(np.round(I_x * np.random.beta(beta, beta)))
+    h = int(np.round(I_y * np.random.beta(beta, beta)))
+    w_ = [w, I_x - w, w, I_x - w]
+    h_ = [h, h, I_y - h, I_y - h]    
+    # select and crop four images
+    cropped_images = {}
+    c_ = {}
+    W_ = {}
+    for k in range(4):
+        index = torch.randperm(images.size(0))
+        x_k = np.random.randint(0, I_x - w_[k] + 1)
+        y_k = np.random.randint(0, I_y - h_[k] + 1)
+        cropped_images[k] = images[index][:, :, x_k:x_k + w_[k], y_k:y_k + h_[k]]
+        c_[k] = target[index].cuda()
+        W_[k] = w_[k] * h_[k] / (I_x * I_y)    
+    # patch cropped images
+    patched_images = torch.cat( 
+               (torch.cat((cropped_images[0], cropped_images[1]), 2),
+                torch.cat((cropped_images[2], cropped_images[3]), 2)), 3)    
+    #patched_images = patched_images.cuda()    
+    # get output
+    output = model(patched_images)   
+    # calculate loss and accuracy
+    loss = sum([W_[k] * criterion(output, c_[k])  for k in range(4)])
+    acc = sum([W_[k] * accuracy(output, c_[k])[0] for k in range(4)])
+```
