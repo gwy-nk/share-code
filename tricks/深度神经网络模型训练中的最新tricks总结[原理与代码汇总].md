@@ -170,3 +170,63 @@ for (images, targets) in train_loader:
     loss = sum([W_[k] * criterion(output, c_[k])  for k in range(4)])
     acc = sum([W_[k] * accuracy(output, c_[k])[0] for k in range(4)])
 ```
+## Knowledge Distillation
+提高几乎所有机器学习算法性能的一种非常简单的方法是在相同的数据上训练许多不同的模型，然后对它们的预测进行平均。但是使用所有的模型集成进行预测是比较麻烦的，并且可能计算量太大而无法部署到大量用户。Knowledge Distillation(知识蒸馏)[8]方法就是应对这种问题的有效方法之一。
+
+在知识蒸馏方法中，我们使用一个教师模型来帮助当前的模型（学生模型）训练。教师模型是一个较高准确率的预训练模型，因此学生模型可以在保持模型复杂度不变的情况下提升准确率。比如，可以使用ResNet-152作为教师模型来帮助学生模型ResNet-50训练。在训练过程中，我们会加一个蒸馏损失来惩罚学生模型和教师模型的输出之间的差异。
+
+给定输入，假定p是真正的概率分布，z和r分别是学生模型和教师模型最后一个全连接层的输出。之前我们会用交叉熵损失l(p,softmax(z))来度量p和z之间的差异，这里的蒸馏损失同样用交叉熵。所以，使用知识蒸馏方法总的损失函数是
+</br>
+![](https://github.com/NKvision428/share-code/blob/master/tricks/imgs/5.webp)
+</br>
+上式中，第一项还是原来的损失函数，第二项是添加的用来惩罚学生模型和教师模型输出差异的蒸馏损失。其中，T是一个温度超参数，用来使softmax的输出更加平滑的。实验证明，用ResNet-152作为教师模型来训练ResNet-50，可以提高后者的准确率。
+## Cutout
+Cutout[9]是一种新的正则化方法。原理是在训练时随机把图片的一部分减掉，这样能提高模型的鲁棒性。它的来源是计算机视觉任务中经常遇到的物体遮挡问题。通过cutout生成一些类似被遮挡的物体，不仅可以让模型在遇到遮挡问题时表现更好，还能让模型在做决定时更多地考虑环境(context)。
+```
+import torch
+import numpy as np
+
+class Cutout(object):
+    """Randomly mask out one or more patches from an image.
+    Args:
+        n_holes (int): Number of patches to cut out of each image
+        length (int): The length (in pixels) of each square patch.
+    """    
+    def __init__(self, n_holes, length):
+        self.n_holes = n_holes
+        self.length = length    
+    def __call__(self, img):        
+        """
+        Args:
+            img (Tensor): Tensor image of size (C, H, W).
+             Returns:
+                Tensor: Image with n_holes of dimension length x length cut out of it.
+        """
+        h = img.size(1)
+        w = img.size(2)
+        mask = np.ones((h, w), np.float32)        
+        for n in range(self.n_holes):
+            y = np.random.randint(h)
+            x = np.random.randint(w)
+            y1 = np.clip(y - self.length // 2, 0, h)
+            y2 = np.clip(y + self.length // 2, 0, h)
+            x1 = np.clip(x - self.length // 2, 0, w)
+            x2 = np.clip(x + self.length // 2, 0, w)
+            mask[y1: y2, x1: x2] = 0.
+        mask = torch.from_numpy(mask)
+        mask = mask.expand_as(img)
+        img = img * mask        
+        return img
+```
+效果如下图，每个图片的一小部分被cutout了。
+</br>
+![](https://github.com/NKvision428/share-code/blob/master/tricks/imgs/6.webp)
+</br>
+## Random erasing
+Random erasing[6]其实和cutout非常类似，也是一种模拟物体遮挡情况的数据增强方法。区别在于，cutout是把图片中随机抽中的矩形区域的像素值置为0，相当于裁剪掉，random erasing是用随机数或者数据集中像素的平均值替换原来的像素值。而且，cutout每次裁剪掉的区域大小是固定的，Random erasing替换掉的区域大小是随机的。
+</br>
+![](https://github.com/NKvision428/share-code/blob/master/tricks/imgs/7.webp)
+</br>
+</br>
+![](https://github.com/NKvision428/share-code/blob/master/tricks/imgs/8.webp)
+</br>
