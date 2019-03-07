@@ -275,3 +275,108 @@ class RandomErasing(object):
                 return img        
         return img
 ```
+## Cosine learning rate decay
+在warmup之后的训练过程中，学习率不断衰减是一个提高精度的好方法。其中有step decay和cosine decay等，前者是随着epoch增大学习率不断减去一个小的数，后者是让学习率随着训练过程曲线下降。
+
+对于cosine decay，假设总共有T个batch（不考虑warmup阶段），在第t个batch时，学习率η_t为：
+</br>
+![](https://github.com/NKvision428/share-code/blob/master/tricks/imgs/9.webp)
+</br>
+这里，η代表初始设置的学习率。这种学习率递减的方式称之为cosine decay。
+
+下面是带有warmup的学习率衰减的可视化图[4]。其中，图(a)是学习率随epoch增大而下降的图，可以看出cosine decay比step decay更加平滑一点。图(b)是准确率随epoch的变化图，两者最终的准确率没有太大差别，不过cosine decay的学习过程更加平滑。
+</br>
+![](https://github.com/NKvision428/share-code/blob/master/tricks/imgs/10.webp)
+</br>
+在pytorch的torch.optim.lr_scheduler中有更多的学习率衰减的方法，至于哪个效果好，可能对于不同问题答案是不一样的。对于step decay，使用方法如下：
+```
+# Assuming optimizer uses lr = 0.05 for all groups
+# lr = 0.05     if epoch < 30
+# lr = 0.005    if 30 <= epoch < 60
+# lr = 0.0005   if 60 <= epoch < 90
+from torch.optim.lr_scheduler import StepLR
+scheduler = StepLR(optimizer, step_size=30, gamma=0.1)
+for epoch in range(100):
+    scheduler.step()
+    train(...)
+    validate(...)
+```
+## Mixup training
+Mixup[10]是一种新的数据增强的方法。Mixup training，就是每次取出2张图片，然后将它们线性组合，得到新的图片，以此来作为新的训练样本，进行网络的训练，如下公式，其中x代表图像数据，y代表标签，则得到的新的xhat, yhat。
+</br>
+![](https://github.com/NKvision428/share-code/blob/master/tricks/imgs/11.webp)
+</br>
+其中，λ是从Beta(α, α)随机采样的数，在[0,1]之间。在训练过程中，仅使用(xhat, yhat)。
+
+Mixup方法主要增强了训练样本之间的线性表达，增强网络的泛化能力，不过mixup方法需要较长的时间才能收敛得比较好。
+
+Mixup代码如下：
+```
+for (images, labels) in train_loader:
+    l = np.random.beta(mixup_alpha, mixup_alpha)
+    index = torch.randperm(images.size(0))
+    images_a, images_b = images, images[index]
+    labels_a, labels_b = labels, labels[index]
+    mixed_images = l * images_a + (1 - l) * images_b
+    outputs = model(mixed_images)
+    loss = l * criterion(outputs, labels_a) + (1 - l) * criterion(outputs, labels_b)
+    acc = l * accuracy(outputs, labels_a)[0] + (1 - l) * accuracy(outputs, labels_b)[0]
+```
+## AdaBound
+AdaBound是最近一篇论文[5]中提到的，按照作者的说法，AdaBound会让你的训练过程像adam一样快，并且像SGD一样好。
+
+如下图所示，使用AdaBound会收敛速度更快，过程更平滑，结果更好。
+</br>
+![](https://github.com/NKvision428/share-code/blob/master/tricks/imgs/12.webp)
+</br>
+另外，这种方法相对于SGD对超参数的变化不是那么敏感，也就是说鲁棒性更好。但是，针对不同的问题还是需要调节超参数的，只是所用的时间可能变少了。
+</br>
+![](https://github.com/NKvision428/share-code/blob/master/tricks/imgs/13.webp)
+</br>
+当然，AdaBound还没有经过普遍的检验，也有可能只是对于某些问题效果好。
+
+使用方法如下：
+安装AdaBound
+```
+pip install adabound
+```
+使用AdaBound(和其他PyTorch optimizers用法一致)
+```
+optimizer = adabound.AdaBound(model.parameters(), lr=1e-3, final_lr=0.1)
+```
+## AutoAugment
+数据增强在图像分类问题上有很重要的作用，但是增强的方法有很多，并非一股脑地用上所有的方法就是最好的。那么，如何选择最佳的数据增强方法呢？ AutoAugment[11]就是一种搜索适合当前问题的数据增强方法的方法。该方法创建一个数据增强策略的搜索空间，利用搜索算法选取适合特定数据集的数据增强策略。此外，从一个数据集中学到的策略能够很好地迁移到其它相似的数据集上。
+
+AutoAugment在cifar10上的表现如下表，达到了98.52%的准确率。
+</br>
+![](https://github.com/NKvision428/share-code/blob/master/tricks/imgs/14.webp)
+</br>
+## 其他经典的tricks
+### 常用的正则化方法为:
+-- Dropout
+-- L1/L2正则
+-- Batch Normalization
+-- Early stopping
+-- Random cropping
+-- Mirroring
+-- Rotation
+-- Color shifting
+-- PCA color augmentation
+-- ...
+### 其他
+-- Xavier init[12]
+-- ...
+## 参考
+[1] Deep Residual Learning for Image Recognition(https://arxiv.org/pdf/1512.03385.pdf)
+[2] http://cs231n.github.io/neural-networks-2/
+[3] Accurate, Large Minibatch SGD: Training ImageNet in 1 Hour(https://arxiv.org/pdf/1706.02677v2.pdf)
+[4] Rethinking the Inception Architecture for Computer Vision(https://arxiv.org/pdf/1512.00567v3.pdf)
+[4]Bag of Tricks for Image Classification with Convolutional Neural Networks(https://arxiv.org/pdf/1812.01187.pdf)
+[5] Adaptive Gradient Methods with Dynamic Bound of Learning Rate(https://www.luolc.com/publications/adabound/)
+[6] Random erasing(https://arxiv.org/pdf/1708.04896v2.pdf)
+[7] RICAP(https://arxiv.org/pdf/1811.09030.pdf)
+[8] Distilling the Knowledge in a Neural Network(https://arxiv.org/pdf/1503.02531.pdf)
+[9] Improved Regularization of Convolutional Neural Networks with Cutout(https://arxiv.org/pdf/1708.04552.pdf)
+[10] Mixup: BEYOND EMPIRICAL RISK MINIMIZATION(https://arxiv.org/pdf/1710.09412.pdf)
+[11] AutoAugment: Learning Augmentation Policies from Data(https://arxiv.org/pdf/1805.09501.pdf)
+[12] Understanding the difficulty of training deep feedforward neural networks(http://proceedings.mlr.press/v9/glorot10a/glorot10a.pdf)
