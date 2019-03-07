@@ -26,7 +26,7 @@ from torch.optim.lr_scheduler import _LRScheduler
 
 class GradualWarmupScheduler(_LRScheduler):
     
-""" 
+    """ 
     Args:
         optimizer (Optimizer): Wrapped optimizer.
         multiplier: target learning rate = base lr * multiplier
@@ -74,7 +74,8 @@ Linear scaling learning rate是在论文[3]中针对比较大的batch size而提
 标签平滑(Label-smoothing regularization,LSR)是应对该问题的有效方法之一，它的具体思想是降低我们对于标签的信任，例如我们可以将损失的目标值从1稍微降到0.9，或者将从0稍微升到0.1。标签平滑最早在inception-v2[4]中被提出，它将真实的概率改造为：
 </br>
  <img src="https://github.com/NKvision428/share-code/blob/master/tricks/imgs/1.webp"  div align=center />
- 其中，ε是一个小的常数，K是类别的数目，y是图片的真正的标签，i代表第i个类别，q_i是图片为第i类的概率。
+ </br>
+  其中，ε是一个小的常数，K是类别的数目，y是图片的真正的标签，i代表第i个类别，q_i是图片为第i类的概率。
 
 总的来说，LSR是一种通过在标签y中加入噪声，实现对模型约束，降低模型过拟合程度的一种正则化方法。
 
@@ -110,32 +111,21 @@ class LSR(nn.Module):
         return one_hot
     
 def _smooth_label(self, target, length, smooth_factor):
-    """convert targets to one-hot format, and smooth them.
+    """
+    convert targets to one-hot format, and smooth them.
     Args:
         target: target in form with [label1, label2, label_batchsize]
-
-            length: length of one-hot format(number of classes)
-
-            smooth_factor: smooth factor for label smooth
-
-
-
-        Returns:
-
-            smoothed labels in one hot format
-
-        """
-
-        one_hot = self._one_hot(target, length, value=
-1
- - smooth_factor)
-
-        one_hot += smooth_factor / length
-
-
-
-        
-return
- one_hot.to(target.device)
+        length: length of one-hot format(number of classes)
+        smooth_factor: smooth factor for label smooth
+        Returns:smoothed labels in one hot format
+     """
+        one_hot = self._one_hot(target, length, value=1 - smooth_factor)
+        one_hot += smooth_factor / length      
+        return one_hot.to(target.device)
 ```
-
+## Random image cropping and patching
+Random image cropping and patching (RICAP)[7]方法随机裁剪四个图片的中部分，然后把它们拼接为一个图片，同时混合这四个图片的标签。
+RICAP在caifar10上达到了2.19%的错误率。
+</br>
+![](https://github.com/NKvision428/share-code/blob/master/tricks/imgs/2.webp)
+</br>
